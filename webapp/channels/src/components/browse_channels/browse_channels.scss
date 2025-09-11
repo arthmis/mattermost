@@ -98,13 +98,12 @@
                 cursor: pointer;
             }
 
-            #menuWrapper {
+            .menuWrapper {
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 padding: 4px 6px 4px 8px;
                 border: none;
-                margin-right: 10px;
                 background-color: unset;
 
                 &[aria-expanded='true'] {
@@ -113,9 +112,13 @@
                 }
             }
 
-            #menuWrapper:hover {
+            .menuWrapper:hover {
                 border-radius: 4px;
                 background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            }
+
+            .menuWrapperMargin {
+                margin-right: 10px;
             }
         }
     }

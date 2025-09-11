@@ -37,7 +37,16 @@ export enum Filter {
     Archived = 'Archived',
 }
 
+export enum Sort {
+    Recommended = 'Recommended',
+    NewestChannels = 'NewestChannels',
+    MostMembers = 'MostMembers',
+    AToZ = 'AToZ',
+    ZToA = 'ZToA',
+}
+
 export type FilterType = keyof typeof Filter;
+export type SortType = keyof typeof Sort;
 
 type Actions = {
     getChannels: (teamId: string, page: number, perPage: number) => Promise<ActionResult<Channel[]>>;
@@ -74,6 +83,7 @@ export type Props = {
 type State = {
     loading: boolean;
     filter: FilterType;
+    sort: SortType;
     search: boolean;
     searchedChannels: Channel[];
     serverError: React.ReactNode | string;
@@ -93,6 +103,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         this.state = {
             loading: true,
             filter: Filter.All,
+            sort: Sort.Recommended,
             search: false,
             searchedChannels: [],
             serverError: null,
@@ -228,26 +239,38 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
 
     setSearchResults = (channels: Channel[]) => {
         // filter out private channels that the user is not a member of
-        let searchedChannels = channels.filter((c) => c.type !== Constants.PRIVATE_CHANNEL || this.isMemberOfChannel(c.id));
+        let searchedChannels = this.filterSearchResults(channels);
+
+        this.setState({searchedChannels, searching: false});
+    };
+
+    filterSearchResults = (channels: Channel[]) => {
+        let filteredChannels = channels.filter((c) => c.type !== Constants.PRIVATE_CHANNEL || this.isMemberOfChannel(c.id));
         if (this.state.filter === Filter.Private) {
-            searchedChannels = channels.filter((c) => c.type === Constants.PRIVATE_CHANNEL && this.isMemberOfChannel(c.id));
+            filteredChannels = channels.filter((c) => c.type === Constants.PRIVATE_CHANNEL && this.isMemberOfChannel(c.id));
         }
         if (this.state.filter === Filter.Public) {
-            searchedChannels = channels.filter((c) => c.type === Constants.OPEN_CHANNEL && c.delete_at === 0);
+            filteredChannels = channels.filter((c) => c.type === Constants.OPEN_CHANNEL && c.delete_at === 0);
         }
         if (this.state.filter === Filter.Archived) {
-            searchedChannels = channels.filter((c) => c.delete_at !== 0);
+            filteredChannels = channels.filter((c) => c.delete_at !== 0);
         }
         if (this.props.shouldHideJoinedChannels) {
-            searchedChannels = this.getChannelsWithoutJoined(searchedChannels);
+            filteredChannels = this.getChannelsWithoutJoined(filteredChannels);
         }
-        this.setState({searchedChannels, searching: false});
+        return filteredChannels;
     };
 
     changeFilter = (filter: FilterType) => {
         // search again when switching channels to update search results
         this.search(this.state.searchTerm);
         this.setState({filter});
+    };
+
+    changeSort = (sort: SortType) => {
+        // search again when switching channels to update search results
+        this.search(this.state.searchTerm);
+        this.setState({sort});
     };
 
     isMemberOfChannel(channelId: string) {
@@ -347,6 +370,8 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     loading={search ? searching : channelsRequestStarted}
                     changeFilter={this.changeFilter}
                     filter={this.state.filter}
+                    changeSort={this.changeSort}
+                    sort={this.state.sort}
                     myChannelMemberships={this.props.myChannelMemberships}
                     closeModal={this.props.actions.closeModal}
                     hideJoinedChannelsPreference={this.handleShowJoinedChannelsPreference}

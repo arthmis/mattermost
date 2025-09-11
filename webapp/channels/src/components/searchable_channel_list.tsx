@@ -24,8 +24,8 @@ import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 
-import type {FilterType} from './browse_channels/browse_channels';
-import {Filter} from './browse_channels/browse_channels';
+import type {FilterType, SortType} from './browse_channels/browse_channels';
+import {Filter, Sort} from './browse_channels/browse_channels';
 
 const NEXT_BUTTON_TIMEOUT_MILLISECONDS = 500;
 
@@ -39,6 +39,8 @@ interface Props extends WrappedComponentProps {
     noResultsText: JSX.Element;
     changeFilter: (filter: FilterType) => void;
     filter: FilterType;
+    changeSort: (sort: SortType) => void;
+    sort: SortType;
     myChannelMemberships: RelationOneToOne<Channel, ChannelMembership>;
     closeModal: (modalId: string) => void;
     hideJoinedChannelsPreference: (shouldHideJoinedChannels: boolean) => void;
@@ -267,6 +269,12 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             this.setState({page: 0});
         }
     };
+    sortChange = (sortType: SortType) => {
+        this.props.changeSort(sortType);
+        if (this.props.sort !== sortType) {
+            this.setState({page: 0});
+        }
+    };
     handleChange = (e?: React.FormEvent<HTMLInputElement>) => {
         if (e?.currentTarget) {
             this.setState({channelSearchValue: e?.currentTarget.value}, () => this.doSearch());
@@ -357,6 +365,53 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 <FormattedMessage
                     id='more_channels.show_all_channels'
                     defaultMessage='Channel Type: All'
+                />
+            );
+        }
+    };
+
+    getSortLabel = () => {
+        switch (this.props.sort) {
+        case Sort.Recommended:
+            return (
+                <FormattedMessage
+                    id='more_channels.sort_by_recommended_channels'
+                    defaultMessage='Sort: Recommended'
+                />
+            );
+        case Sort.MostMembers:
+            return (
+                <FormattedMessage
+                    id='more_channels.sort_by_most_members_channels'
+                    defaultMessage='Sort: Most Members'
+                />
+            );
+        case Sort.NewestChannels:
+            return (
+                <FormattedMessage
+                    id='more_channels.sort_by_newest_channels'
+                    defaultMessage='Sort: Newest channels'
+                />
+            );
+        case Sort.AToZ:
+            return (
+                <FormattedMessage
+                    id='more_channels.sort_by_a_to_z_channels'
+                    defaultMessage='Sort: A to Z'
+                />
+            );
+        case Sort.ZToA:
+            return (
+                <FormattedMessage
+                    id='more_channels.sort_by_z_to_a_channels'
+                    defaultMessage='Sort: Z to A'
+                />
+            );
+        default:
+            return (
+                <FormattedMessage
+                    id='more_channels.sort_by_recommended_channels'
+                    defaultMessage='Sort: Recommended'
                 />
             );
         }
@@ -529,15 +584,16 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     className='sr-only'
                 >
                     {this.props.intl.formatMessage({
-                        id: 'more_channels.channel_type_filter.filter_type_set',
-                        defaultMessage: 'Channel type filter set to {filterType}',
+                        id: 'more_channels.channel_sort.sort_type_set',
+                        defaultMessage: 'Sort type filter set to {sortType}',
                     }, {
-                        filterType: this.props.filter,
+                        sortType: this.props.sort,
                     })}
                 </div>
                 <Menu.Container
                     menuButton={{
                         id: 'menuWrapper',
+                        class: 'menuWrapper menuWrapperMargin',
                         children: menuButton,
                         'aria-label': this.props.intl.formatMessage({id: 'more_channels.channel_type_filter', defaultMessage: 'Channel type filter'}),
                     }}
@@ -547,6 +603,119 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     }}
                 >
                     {channelDropdownItems.map((item) => item)}
+                </Menu.Container>
+            </>
+        );
+
+        const sortDropdownItems = [
+            <Menu.Item
+                key='sortChannelsRecommended'
+                id='sortChannelsRecommended'
+                onClick={() => this.sortChange(Sort.Recommended)}
+                leadingElement={<GlobeCheckedIcon size={16}/>}
+                labels={
+                    <FormattedMessage
+                        id='sort.recommended'
+                        defaultMessage='Recommended'
+                    />
+                }
+                trailingElements={this.props.sort === Sort.Recommended ? checkIcon : null}
+                aria-label={this.props.intl.formatMessage({id: 'sort.recommended', defaultMessage: 'Recommended'})}
+            />,
+            <Menu.Item
+                key='sortChannelsNewest'
+                id='sortChannelsNewest'
+                onClick={() => this.sortChange(Sort.NewestChannels)}
+                leadingElement={<GlobeIcon size={16}/>}
+                labels={
+                    <FormattedMessage
+                        id='sort.newest_channels'
+                        defaultMessage='Newest channels'
+                    />
+                }
+                trailingElements={this.props.sort === Sort.NewestChannels ? checkIcon : null}
+                aria-label={this.props.intl.formatMessage({id: 'sort.newest_channels', defaultMessage: 'Newest channels'})}
+            />,
+            <Menu.Item
+                key='sortChannelsMostMembers'
+                id='sortChannelsMostMembers'
+                onClick={() => this.sortChange(Sort.MostMembers)}
+                leadingElement={<GlobeIcon size={16}/>}
+                labels={
+                    <FormattedMessage
+                        id='sort.most_members'
+                        defaultMessage='Most members'
+                    />
+                }
+                trailingElements={this.props.sort === Sort.MostMembers ? checkIcon : null}
+                aria-label={this.props.intl.formatMessage({id: 'sort.most_members', defaultMessage: 'Most members'})}
+            />,
+            <Menu.Item
+                key='sortChannelsAtoZ'
+                id='sortChannelsAtoZ'
+                onClick={() => this.sortChange(Sort.AToZ)}
+                leadingElement={<GlobeIcon size={16}/>}
+                labels={
+                    <FormattedMessage
+                        id='sort.a_to_z'
+                        defaultMessage='A to Z'
+                    />
+                }
+                trailingElements={this.props.sort === Sort.AToZ ? checkIcon : null}
+                aria-label={this.props.intl.formatMessage({id: 'sort.a_to_z', defaultMessage: 'A to Z'})}
+            />,
+            <Menu.Item
+                key='sortChannelsZtoA'
+                id='sortChannelsZtoA'
+                onClick={() => this.sortChange(Sort.ZToA)}
+                leadingElement={<GlobeIcon size={16}/>}
+                labels={
+                    <FormattedMessage
+                        id='sort.z_to_a'
+                        defaultMessage='Z to A'
+                    />
+                }
+                trailingElements={this.props.sort === Sort.ZToA ? checkIcon : null}
+                aria-label={this.props.intl.formatMessage({id: 'sort.z_to_a', defaultMessage: 'Z to A'})}
+            />,
+        ];
+
+        const sortMenuButton = (
+            <>
+                {this.getSortLabel()}
+                <ChevronDownIcon
+                    color={'rgba(var(--center-channel-color-rgb), 0.64)'}
+                    size={16}
+                />
+            </>
+        );
+        const sortDropdown = (
+            <>
+                <div
+                    role='status'
+                    aria-atomic='true'
+                    className='sr-only'
+                >
+                    {this.props.intl.formatMessage({
+                        id: 'more_channels.channel_type_filter.filter_type_set',
+                        defaultMessage: 'Channel type filter set to {filterType}',
+                    }, {
+                        filterType: this.props.filter,
+                    })}
+                </div>
+                <Menu.Container
+                    menuButton={{
+                        id: 'sortChannelsMenuWrapper',
+                        class: 'menuWrapper',
+                        children: sortMenuButton,
+                        'aria-label': this.props.intl.formatMessage({id: 'more_channels.channel_type_filter', defaultMessage: 'Channel type filter'}),
+                    }}
+                    menu={{
+                        id: 'sortChannelsDropdown',
+                        'aria-label': this.props.intl.formatMessage({id: 'more_channels.channel_type_filter', defaultMessage: 'Channel type filter'}),
+                    }}
+                >
+                    {sortDropdownItems.map((item) => item)}
                 </Menu.Container>
             </>
         );
@@ -599,6 +768,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     {channelCountLabel}
                 </span>
                 <div id='modalPreferenceContainer'>
+                    {sortDropdown}
                     {channelDropdown}
                     {hideJoinedPreferenceCheckbox}
                 </div>
