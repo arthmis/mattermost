@@ -63,16 +63,16 @@ Possible ways to do this sort
             )
     ),
     public_joined_channels AS (
-        SELECT channels.id, true as joined
+        SELECT channels.id as channelid, true as joined
         FROM channels
         LEFT JOIN channelmembers ON channelmembers.channelid = channels.id
-        WHERE '5z45bzixitrztbf8f9xyi1yz7' = channelmembers.userid AND channels.type = 'O'
+        WHERE '5z45bzixitrztbf8f9xyi1yz7h' = channelmembers.userid AND channels.type = 'O'
     )
     SELECT channels.name, social_circle_channels.in_social_circle, unjoined_channels.unjoined, public_joined_channels.joined
     FROM channels
     LEFT JOIN social_circle_channels ON channels.id = social_circle_channels.channelid
     LEFT JOIN unjoined_channels ON channels.id = unjoined_channels.channelid
-    LEFT JOIN public_joined_channels ON channels.id = public_joined_channels.id
+    LEFT JOIN public_joined_channels ON channels.id = public_joined_channels.channelid
     ORDER BY social_circle_channels.in_social_circle, unjoined_channels.unjoined, public_joined_channels.joined, channels.lastpostat;
 ```
 
