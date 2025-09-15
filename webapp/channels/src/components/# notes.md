@@ -51,7 +51,17 @@ Possible ways to do this sort
     WITH social_circle_channels AS (
         SELECT channelid, channels.name, true as in_social_circle
         FROM channelmembers INNER JOIN channels ON channels.id = channelid
-        WHERE userid IN ('44aekhi34ffk3gto37ii1uek4c', 'qtzwymk897fx3kqw6p77a3uofe') ORDER BY in_social_circle, channels.lastpostat DESC)
+        WHERE userid IN ('44aekhi34ffk3gto37ii1uek4c', 'qtzwymk897fx3kqw6p77a3uofe') ORDER BY in_social_circle, channels.lastpostat DESC
+    ),
+    unjoined_channels AS (
+    SELECT distinct channelmembers.channelid                        
+        FROM channelmembers
+        WHERE channelmembers.channelid NOT IN (
+            SELECT channelmembers.channelid
+                FROM channelmembers
+                WHERE '5z45bzixitrztbf8f9xyi1yz7h' = channelmembers.userid
+            )
+    )
     SELECT channels.name, social_circle_channels.name
     FROM channels LEFT JOIN social_circle_channels ON channels.id = social_circle_channels.channelid
     ORDER BY social_circle_channels.in_social_circle, channels.lastpostat;
